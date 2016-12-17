@@ -1,7 +1,7 @@
 
 job('DSL-Test') {
     scm {
-        git('git@github.com:rkibbe/Jenkins.git')
+        git('git://github.com:rkibbe/jenkins.git')
 		
     }
     triggers {
@@ -12,21 +12,7 @@ job('DSL-Test') {
     }
 }
 
-def project = 'Jenkins'
-def branchApi = new URL("http://api.github.com/repos/${project}/branches")
-def branches = new groovy.json.JsonSlurper().parse(branchApi.newReader())
-branches.each {
-    def branchName = it.name
-    def jobName = "${project}-${branchName}".replaceAll('/','-')
-    job(jobName) {
-        scm {
-            git("git://github.com/${project}.git", branchName)
-        }
-        steps {
-            maven("test -Dproject.name=${project}/${branchName}")
-        }
-    }
-}
+
 
 
 
