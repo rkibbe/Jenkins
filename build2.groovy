@@ -1,4 +1,4 @@
-def project = 'Rkibbe/Jenkins'
+def project = 'rkibbe/jenkins'
 def branchApi = new URL("https://api.github.com/repos/${project}/branches")
 def branches = new groovy.json.JsonSlurper().parse(branchApi.newReader())
 branches.each {
@@ -6,7 +6,10 @@ branches.each {
     def jobName = "${project}-${branchName}".replaceAll('/','-')
     job(jobName) {
         scm {
-            git("https://github.com/${project}.git", branchName)
+            git("git://github.com/${project}.git", branchName)
+        }
+        steps {
+            maven("test -Dproject.name=${project}/${branchName}")
         }
     }
 }
