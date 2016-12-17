@@ -8,8 +8,16 @@ branches.each {
         scm {
             git("git://github.com/${project}.git", branchName)
         }
-        steps {
-            maven("test -Dproject.name=${project}/${branchName}")
+       steps {
+        msBuild {
+            msBuildInstallation('MSBuild 1.8')
+            buildFile('dir1/build.proj')
+            args('check')
+            args('another')
+            passBuildVariables()
+            continueOnBuildFailure()
+            unstableIfWarnings()
         }
+    }
     }
 }
