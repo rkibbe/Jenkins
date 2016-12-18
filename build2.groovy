@@ -11,7 +11,7 @@ branches.each {
        steps {
         msBuild {
             msBuildInstallation('MSBuild 1.8')
-            buildFile('dir1/build.proj')
+            buildFile('EagleEye/EagleEye.proj')
             args('check')
             args('another')
             passBuildVariables()
