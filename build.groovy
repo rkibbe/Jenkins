@@ -13,23 +13,15 @@ job('DSL-Test') {
 }
 
 job {
-  name('builders')
-  steps {
-    shell('echo AAA')
-  }
-  configure {
-    it / builders << 'hudson.plugins.xshell.XShellBuilder' {
-      commandLine('123')
-    }
-  }
-  steps {
-    shell('echo BBB')
-  }
-  configure {
-    it / builders << 'hudson.plugins.xshell.XShellBuilder' {
-      commandLine('456')
+  configure { project ->
+      
+    project / 'publishers' << 'jenkins.plugins.hipchat.HipChatNotifier' {
+      jenkinsUrl 'http://jenkins/'
+      authToken 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+      room '76124'
     }
   }
 }
+
 
 
