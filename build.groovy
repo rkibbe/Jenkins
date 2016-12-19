@@ -10,7 +10,7 @@ job('DSL-codedeploy') {
     steps {
         msBuild {
             msBuildInstallation('MSBuild 1.8')
-            buildFile('.\EagleEye.sln')
+            buildFile('.\\EagleEye.sln')
             args('')
             args('')
             passBuildVariables()
