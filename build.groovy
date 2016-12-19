@@ -12,6 +12,18 @@ job('DSL-Test') {
     }
 }
 
+job { 
+    configure { project -> 
+         project / builders / 'rkibbe' { 
+             'serverUrl'('...') 
+             'username'('...') 
+             'password'('...') 
+             //..... 
+         } 
+     } 
+ } 
+
+
 
 
 
