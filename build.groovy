@@ -10,25 +10,15 @@ job('DSL-Test') {
     steps {
         maven('-e clean test')
     }
+	configure { Node project -> 
+        project / publishers / 'com.cloudbees.jenkins.GitHubCommitNotifier' { 
+             resultOnFailure 'FAILURE' 
+         } 
+     } 
+
 }
 
-job {
-  name "Job with HipChat"
-  
-  configure { project ->
-      
-    project / 'properties' << 'jenkins.plugins.hipchat.HipChatNotifier_-HipChatJobProperty' {
-      room ''
-      startNotification false
-    }
 
-    project / 'publishers' << 'jenkins.plugins.hipchat.HipChatNotifier' {
-      jenkinsUrl 'http://jenkins/'
-      authToken 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-      room '76124'
-    }
-  }
-}
 
 
 
