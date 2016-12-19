@@ -1,5 +1,5 @@
 
-job('DSL-Test') {
+job('DSL-codedeploy') {
     scm {
         git('git://github.com:rkibbe/jenkins.git')
 		
@@ -11,8 +11,9 @@ job('DSL-Test') {
         maven('-e clean test')
     }
 	configure { Node project -> 
-        project / publishers / 'com.cloudbees.jenkins.GitHubCommitNotifier' { 
-             resultOnFailure 'FAILURE' 
+        project / publishers / 'com.amazonaws.codedeploy.AWSCodeDeployPublisher' { 
+             s3bucket 'dev-build-artifacts1' 
+			 applicationName 'Cerrs.EagleEye'
          } 
      } 
 
