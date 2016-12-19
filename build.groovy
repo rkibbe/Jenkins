@@ -8,8 +8,15 @@ job('DSL-codedeploy') {
         scm('H/15 * * * *')
     }
     steps {
-        maven('-e clean test')
-    }
+        msBuild {
+            msBuildInstallation('MSBuild 1.8')
+            buildFile('dir1/build.proj')
+            args('check')
+            args('another')
+            passBuildVariables()
+            continueOnBuildFailure()
+            unstableIfWarnings()
+        }
 	configure { Node project -> 
         project / publishers / 'com.amazonaws.codedeploy.AWSCodeDeployPublisher' { 
              s3bucket 'dev-build-artifacts1' 
