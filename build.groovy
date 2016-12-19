@@ -12,18 +12,19 @@ job('DSL-Test') {
     }
 }
 
-job { 
-    configure { project -> 
-         project / builders / 'rkibbe' { 
-             'serverUrl'('...') 
-             'username'('...') 
-             'password'('...') 
-             //..... 
-         } 
-     } 
- } 
+job {
+  name 'builders'
+  jdk('JDK-17')
 
-
+  steps {
+    configure { node ->
+      node / builders {
+        'hudson.plugins.xshell.XShellBuilder'(plugin: 'xshell@0.9') {
+            commandLine('run-me-as-the-first-build-step')
+            executeFromWorkingDir('true')
+        }
+      }        
+    }
 
 
 
