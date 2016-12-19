@@ -13,8 +13,15 @@ job('DSL-Test') {
 }
 
 job {
+  name "Job with HipChat"
+  
   configure { project ->
       
+    project / 'properties' << 'jenkins.plugins.hipchat.HipChatNotifier_-HipChatJobProperty' {
+      room ''
+      startNotification false
+    }
+
     project / 'publishers' << 'jenkins.plugins.hipchat.HipChatNotifier' {
       jenkinsUrl 'http://jenkins/'
       authToken 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -22,6 +29,7 @@ job {
     }
   }
 }
+
 
 
 
