@@ -13,18 +13,23 @@ job('DSL-Test') {
 }
 
 job {
-  name 'builders'
-  jdk('JDK-17')
-
+  name('builders')
   steps {
-    configure { node ->
-      node / builders {
-        'hudson.plugins.xshell.XShellBuilder'(plugin: 'xshell@0.9') {
-            commandLine('run-me-as-the-first-build-step')
-            executeFromWorkingDir('true')
-        }
-      }        
+    shell('echo AAA')
+  }
+  configure {
+    it / builders << 'hudson.plugins.xshell.XShellBuilder' {
+      commandLine('123')
     }
+  }
+  steps {
+    shell('echo BBB')
+  }
+  configure {
+    it / builders << 'hudson.plugins.xshell.XShellBuilder' {
+      commandLine('456')
+    }
+  }
 }
-}
+
 
