@@ -1,0 +1,7 @@
+job('Powershell') {
+  steps {
+    powerShell('...')
+  }
+  
+  }
+}

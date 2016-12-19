@@ -1,0 +1,2017 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "VPC by Randy Kibbe",
+  "Parameters": {
+    "Owner": {
+      "Description": "Enter Team or Individual Name Responsible for the Stack.",
+      "Type": "String",
+      "Default": "FirstName LastName"
+    },
+    "Project": {
+      "Description": "Enter Project Name.",
+      "Type": "String",
+      "Default": "VPC Creation"
+    },
+    "DeleteAfter": {
+      "Description": "Enter Date (MM/DD/YYYY). It's Ok to Delete the Stack or 'Never' if meant to be persistent.",
+      "Type": "String",
+      "Default": "00/00/201x"
+    },
+    "VPCSubnetCidrBlock": {
+      "Description": "Enter VPC CIDR Block. (i.e. 10.0.0.0/16 = 10.0.0.0-10.0.255.255 = 256 Subnets - 65534 hosts)",
+      "Type": "String",
+      "Default": "10.0.0.0/16",
+      "MinLength": "10",
+      "MaxLength": "18",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    },
+    "AvailabilityZone1": {
+      "Description": "Enter Availability Zone 1 for Public and Private Subnets to use.",
+      "Type": "String",
+      "Default": "a",
+      "AllowedValues": [
+        "a",
+        "c",
+        "d",
+        "e",
+        "f"
+      ]
+    },
+    "AvailabilityZone2": {
+      "Description": "Enter Availability Zone 1 for Public and Private Subnets to use.",
+      "Type": "String",
+      "Default": "c",
+      "AllowedValues": [
+        "a",
+        "c",
+        "d",
+        "e",
+        "f"
+      ]
+    },
+   
+    "PublicSubnetCidrBlock1": {
+      "Description": "Enter Public Subnet 1 CIDR Block.",
+      "Type": "String",
+      "Default": "10.0.1.0/24",
+      "MinLength": "10",
+      "MaxLength": "18",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    },
+    "PublicSubnetCidrBlock2": {
+      "Description": "Enter Public Subnet 2 CIDR Block.",
+      "Type": "String",
+      "Default": "10.0.2.0/24",
+      "MinLength": "10",
+      "MaxLength": "18",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    },
+    "PrivateSubnetCidrBlock1": {
+      "Description": "Enter Private Subnet 1 CIDR Block.",
+      "Type": "String",
+      "Default": "10.0.4.0/24",
+      "MinLength": "10",
+      "MaxLength": "18",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    },
+    "PrivateSubnetCidrBlock2": {
+      "Description": "Enter Private Subnet 2 CIDR Block.",
+      "Type": "String",
+      "Default": "10.0.5.0/24",
+      "MinLength": "10",
+      "MaxLength": "18",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    },
+    "RemoteAccessNetwork": {
+      "Description": "Source Network IP CIDR Block such as an Office that can access instances say over VPN. (i.e. 192.168.100.0/24)",
+      "Type": "String",
+      "MinLength": "9",
+      "MaxLength": "18",
+      "Default": "192.168.100.0/24",
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+      "ConstraintDescription": "must be a valid CIDR range of the form x.x.x.x/x."
+    },
+    "AllowHttpToPublicRuleNumber": {
+      "Description": "Enter Public Network ACL Rule Number to Allow HTTP From Internet to Public Network.",
+      "Type": "Number",
+      "Default": "100"
+    },
+    "AllowHttpsToPublicRuleNumber": {
+      "Description": "Enter Public Network ACL Rule Number to Allow HTTPS From Internet to Public Network.",
+      "Type": "Number",
+      "Default": "105"
+    },
+    "AllowReturnTrafficToPublicRuleNumber": {
+      "Description": "Enter Public Network ACL Rule Number to Allow Return Traffic From Internet to Public Network.",
+      "Type": "Number",
+      "Default": "110"
+    },
+    "AllowVpcSubnetsRuleNumber": {
+      "Description": "Enter Public Network ACL Rule Number to Allow All VPC Subnets Cross Access to Public Network.",
+      "Type": "Number",
+      "Default": "115"
+    },
+    "AllowAllOutboundPublicRuleNumber": {
+      "Description": "Enter Public Network ACL Rule Number to Allow All Outbound Traffic from the Public Network.",
+      "Type": "Number",
+      "Default": "100"
+    },
+    "AllowAllInboundPrivateRuleNumber": {
+      "Description": "Enter Private Network ACL Rule Number to Allow All Inbound Traffic.",
+      "Type": "Number",
+      "Default": "100"
+    },
+    "AllowAllOutboundPrivateRuleNumber": {
+      "Description": "Enter Private Network ACL Rule Number to Allow All Outbound Traffic.",
+      "Type": "Number",
+      "Default": "100"
+    }
+  },
+  "Resources": {
+    "VPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "EnableDnsSupport": "true",
+        "EnableDnsHostnames": "true",
+        "CidrBlock": {
+          "Ref": "VPCSubnetCidrBlock"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          },
+          {
+            "Key": "Owner",
+            "Value": {
+              "Ref": "Owner"
+            }
+          },
+          {
+            "Key": "Project",
+            "Value": {
+              "Ref": "Project"
+            }
+          },
+          {
+            "Key": "DeleteAfter",
+            "Value": {
+              "Ref": "DeleteAfter"
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "e7bff9ae-9b63-4b3f-907f-1412b6308138"
+        }
+      }
+    },
+    "PublicSubnet1": {
+      "Type": "AWS::EC2::Subnet",
+      "DependsOn": "VPC",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "AvailabilityZone": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "AWS::Region"
+              },
+              {
+                "Ref": "AvailabilityZone1"
+              }
+            ]
+          ]
+        },
+        "CidrBlock": {
+          "Ref": "PublicSubnetCidrBlock1"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-public-az1"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Owner",
+            "Value": {
+              "Ref": "Owner"
+            }
+          },
+          {
+            "Key": "Project",
+            "Value": {
+              "Ref": "Project"
+            }
+          },
+          {
+            "Key": "DeleteAfter",
+            "Value": {
+              "Ref": "DeleteAfter"
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "4d6e8b61-df66-43e9-93f9-3b0512dffa4c"
+        }
+      }
+    },
+    "PublicSubnet2": {
+      "Type": "AWS::EC2::Subnet",
+      "DependsOn": "VPC",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "AvailabilityZone": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "AWS::Region"
+              },
+              {
+                "Ref": "AvailabilityZone2"
+              }
+            ]
+          ]
+        },
+        "CidrBlock": {
+          "Ref": "PublicSubnetCidrBlock2"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-public-az2"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Owner",
+            "Value": {
+              "Ref": "Owner"
+            }
+          },
+          {
+            "Key": "Project",
+            "Value": {
+              "Ref": "Project"
+            }
+          },
+          {
+            "Key": "DeleteAfter",
+            "Value": {
+              "Ref": "DeleteAfter"
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "1d299f55-f2ae-4d79-9519-c6aae785710f"
+        }
+      }
+    },
+    "InternetGateway": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          },
+          {
+            "Key": "Owner",
+            "Value": {
+              "Ref": "Owner"
+            }
+          },
+          {
+            "Key": "Project",
+            "Value": {
+              "Ref": "Project"
+            }
+          },
+          {
+            "Key": "DeleteAfter",
+            "Value": {
+              "Ref": "DeleteAfter"
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "a537a068-7164-445e-95c8-abc077ea3398"
+        }
+      }
+    },
+    "GatewayToInternet": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "DependsOn": [
+        "InternetGateway",
+        "VPC"
+      ],
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "InternetGatewayId": {
+          "Ref": "InternetGateway"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "81412561-5193-4bc3-b2d5-d37bc798594d"
+        }
+      }
+    },
+    "PublicRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "DependsOn": "VPC",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-public"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Owner",
+            "Value": {
+              "Ref": "Owner"
+            }
+          },
+          {
+            "Key": "Project",
+            "Value": {
+              "Ref": "Project"
+            }
+          },
+          {
+            "Key": "DeleteAfter",
+            "Value": {
+              "Ref": "DeleteAfter"
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "0e9306ab-f0be-4ced-ae2e-b5132ad2381a"
+        }
+      }
+    },
+    "PublicRoute": {
+      "Type": "AWS::EC2::Route",
+      "DependsOn": [
+        "PublicRouteTable",
+        "InternetGateway"
+      ],
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PublicRouteTable"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "InternetGateway"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "d3b44187-94f5-4ae8-adf4-c0ac9368d8d3"
+        }
+      }
+    },
+    "PublicSubnetRouteTableAssociation1": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "DependsOn": [
+        "PublicSubnet1",
+        "PublicRouteTable"
+      ],
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PublicSubnet1"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRouteTable"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "69b30867-d485-4d52-b24b-a2f0971df9b4"
+        }
+      }
+    },
+    "PublicSubnetRouteTableAssociation2": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "DependsOn": [
+        "PublicSubnet2",
+        "PublicRouteTable",
+        "GatewayToInternet"
+      ],
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PublicSubnet2"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRouteTable"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "829c5a32-ab79-4d39-9ee6-ec3691a375e0"
+        }
+      }
+    },
+    "PrivateSubnet1": {
+      "Type": "AWS::EC2::Subnet",
+      "DependsOn": "VPC",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "AvailabilityZone": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "AWS::Region"
+              },
+              {
+                "Ref": "AvailabilityZone1"
+              }
+            ]
+          ]
+        },
+        "CidrBlock": {
+          "Ref": "PrivateSubnetCidrBlock1"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-private-az1"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Owner",
+            "Value": {
+              "Ref": "Owner"
+            }
+          },
+          {
+            "Key": "Project",
+            "Value": {
+              "Ref": "Project"
+            }
+          },
+          {
+            "Key": "DeleteAfter",
+            "Value": {
+              "Ref": "DeleteAfter"
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "175ba65e-4920-47ed-99e0-d64d8f6ca286"
+        }
+      }
+    },
+    "PrivateSubnet2": {
+      "Type": "AWS::EC2::Subnet",
+      "DependsOn": "VPC",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "AvailabilityZone": {
+          "Fn::Join": [
+            "",
+            [
+              {
+                "Ref": "AWS::Region"
+              },
+              {
+                "Ref": "AvailabilityZone2"
+              }
+            ]
+          ]
+        },
+        "CidrBlock": {
+          "Ref": "PrivateSubnetCidrBlock2"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-private-az2"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Owner",
+            "Value": {
+              "Ref": "Owner"
+            }
+          },
+          {
+            "Key": "Project",
+            "Value": {
+              "Ref": "Project"
+            }
+          },
+          {
+            "Key": "DeleteAfter",
+            "Value": {
+              "Ref": "DeleteAfter"
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "5750047d-7d14-4729-a345-8be315647f32"
+        }
+      }
+    },
+    "PrivateRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "DependsOn": "VPC",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-private"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Owner",
+            "Value": {
+              "Ref": "Owner"
+            }
+          },
+          {
+            "Key": "Project",
+            "Value": {
+              "Ref": "Project"
+            }
+          },
+          {
+            "Key": "DeleteAfter",
+            "Value": {
+              "Ref": "DeleteAfter"
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "5f3352fe-ba15-4625-8c6e-665a3f61d57c"
+        }
+      }
+    },
+    "PrivateSubnetRouteTableAssociation1": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "DependsOn": [
+        "PrivateSubnet1",
+        "PrivateRouteTable"
+      ],
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PrivateSubnet1"
+        },
+        "RouteTableId": {
+          "Ref": "PrivateRouteTable"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "5ed1c3d4-c2cd-4201-95c1-84f0f3493212"
+        }
+      }
+    },
+    "PrivateSubnetRouteTableAssociation2": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "DependsOn": [
+        "PrivateSubnet2",
+        "PrivateRouteTable"
+      ],
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PrivateSubnet2"
+        },
+        "RouteTableId": {
+          "Ref": "PrivateRouteTable"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "0081e097-2e0d-4c4c-a1e4-bf42aaa8d9e1"
+        }
+      }
+    },
+    "S3VpcEndpoint": {
+      "Type": "AWS::EC2::VPCEndpoint",
+      "DependsOn": [
+        "VPC",
+        "PrivateRouteTable",
+        "PublicRouteTable"
+      ],
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "*",
+              "Effect": "Allow",
+              "Resource": "*",
+              "Principal": "*"
+            }
+          ]
+        },
+        "RouteTableIds": [
+          {
+            "Ref": "PrivateRouteTable"
+          },
+          {
+            "Ref": "PublicRouteTable"
+          }
+        ],
+        "ServiceName": {
+          "Fn::Join": [
+            "",
+            [
+              "com.amazonaws.",
+              {
+                "Ref": "AWS::Region"
+              },
+              ".s3"
+            ]
+          ]
+        },
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "4f30e4c4-2d4e-451c-b113-ee4b25fc86c0"
+        }
+      }
+    },
+    "PublicNetworkAcl": {
+      "Type": "AWS::EC2::NetworkAcl",
+      "DependsOn": "VPC",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-public-acl"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Owner",
+            "Value": {
+              "Ref": "Owner"
+            }
+          },
+          {
+            "Key": "Project",
+            "Value": {
+              "Ref": "Project"
+            }
+          },
+          {
+            "Key": "DeleteAfter",
+            "Value": {
+              "Ref": "DeleteAfter"
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "508eadf6-6d7a-4309-a563-7ec668e143d4"
+        }
+      }
+    },
+    "InboundPublicNetworkAclAllowHTTP": {
+      "Type": "AWS::EC2::NetworkAclEntry",
+      "DependsOn": "PublicNetworkAcl",
+      "Properties": {
+        "NetworkAclId": {
+          "Ref": "PublicNetworkAcl"
+        },
+        "RuleNumber": {
+          "Ref": "AllowHttpToPublicRuleNumber"
+        },
+        "Protocol": "6",
+        "RuleAction": "allow",
+        "Egress": "false",
+        "CidrBlock": "0.0.0.0/0",
+        "PortRange": {
+          "From": "80",
+          "To": "80"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "51d0acdf-c4df-4d40-a3f0-83b370fe5a81"
+        }
+      }
+    },
+    "InboundPublicNetworkAclAllowHTTPS": {
+      "Type": "AWS::EC2::NetworkAclEntry",
+      "DependsOn": "PublicNetworkAcl",
+      "Properties": {
+        "NetworkAclId": {
+          "Ref": "PublicNetworkAcl"
+        },
+        "RuleNumber": {
+          "Ref": "AllowHttpsToPublicRuleNumber"
+        },
+        "Protocol": "6",
+        "RuleAction": "allow",
+        "Egress": "false",
+        "CidrBlock": "0.0.0.0/0",
+        "PortRange": {
+          "From": "443",
+          "To": "443"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "1a30d109-69b1-4ad2-9d9a-b1be12c825e9"
+        }
+      }
+    },
+    "InboundPublicNetworkAclAllowReturnTraffic": {
+      "Type": "AWS::EC2::NetworkAclEntry",
+      "DependsOn": "PublicNetworkAcl",
+      "Properties": {
+        "NetworkAclId": {
+          "Ref": "PublicNetworkAcl"
+        },
+        "RuleNumber": {
+          "Ref": "AllowReturnTrafficToPublicRuleNumber"
+        },
+        "Protocol": "6",
+        "RuleAction": "allow",
+        "Egress": "false",
+        "CidrBlock": "0.0.0.0/0",
+        "PortRange": {
+          "From": "49152",
+          "To": "65535"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "d3976130-0f47-49d7-9d49-77d831336e7e"
+        }
+      }
+    },
+    "InboundPublicNetworkAclAllowVPCSubnets": {
+      "Type": "AWS::EC2::NetworkAclEntry",
+      "DependsOn": "PublicNetworkAcl",
+      "Properties": {
+        "NetworkAclId": {
+          "Ref": "PublicNetworkAcl"
+        },
+        "RuleNumber": {
+          "Ref": "AllowVpcSubnetsRuleNumber"
+        },
+        "Protocol": "-1",
+        "RuleAction": "allow",
+        "Egress": "false",
+        "CidrBlock": {
+          "Ref": "VPCSubnetCidrBlock"
+        },
+        "PortRange": {
+          "From": "0",
+          "To": "65535"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "325810ac-e549-4a11-b48c-85ec7f34b614"
+        }
+      }
+    },
+    "OutboundPublicNetworkAclAllowAll": {
+      "Type": "AWS::EC2::NetworkAclEntry",
+      "DependsOn": "PublicNetworkAcl",
+      "Properties": {
+        "NetworkAclId": {
+          "Ref": "PublicNetworkAcl"
+        },
+        "RuleNumber": {
+          "Ref": "AllowAllOutboundPublicRuleNumber"
+        },
+        "Protocol": "-1",
+        "RuleAction": "allow",
+        "Egress": "true",
+        "CidrBlock": "0.0.0.0/0",
+        "PortRange": {
+          "From": "0",
+          "To": "65535"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "d110339e-be7c-4596-a1f3-c757b5ebb420"
+        }
+      }
+    },
+    "PublicSubnetNetworkAclAssociation1": {
+      "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+      "DependsOn": [
+        "PublicSubnet1",
+        "PublicNetworkAcl"
+      ],
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PublicSubnet1"
+        },
+        "NetworkAclId": {
+          "Ref": "PublicNetworkAcl"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "31a7b339-051d-408f-be29-3183abd83ab5"
+        }
+      }
+    },
+    "PublicSubnetNetworkAclAssociation2": {
+      "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+      "DependsOn": [
+        "PublicSubnet2",
+        "PublicNetworkAcl"
+      ],
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PublicSubnet2"
+        },
+        "NetworkAclId": {
+          "Ref": "PublicNetworkAcl"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "0ca35575-0206-446e-8a4f-e6b555384652"
+        }
+      }
+    },
+    "PrivateNetworkAcl": {
+      "Type": "AWS::EC2::NetworkAcl",
+      "DependsOn": "VPC",
+      "Properties": {
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-private-acl"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Owner",
+            "Value": {
+              "Ref": "Owner"
+            }
+          },
+          {
+            "Key": "Project",
+            "Value": {
+              "Ref": "Project"
+            }
+          },
+          {
+            "Key": "DeleteAfter",
+            "Value": {
+              "Ref": "DeleteAfter"
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "7a9b3c79-ee9e-412e-8b42-8009c6f766c4"
+        }
+      }
+    },
+    "InboundEphemeralPrivateNetworkAclAllowAll": {
+      "Type": "AWS::EC2::NetworkAclEntry",
+      "DependsOn": "PrivateNetworkAcl",
+      "Properties": {
+        "NetworkAclId": {
+          "Ref": "PrivateNetworkAcl"
+        },
+        "RuleNumber": {
+          "Ref": "AllowAllInboundPrivateRuleNumber"
+        },
+        "Protocol": "-1",
+        "RuleAction": "allow",
+        "Egress": "false",
+        "CidrBlock": "0.0.0.0/0",
+        "PortRange": {
+          "From": "0",
+          "To": "65535"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "6e711be2-7f28-4e59-8df9-dcc6da5d1bf0"
+        }
+      }
+    },
+    "OutboundPrivateNetworkAclAllowAll": {
+      "Type": "AWS::EC2::NetworkAclEntry",
+      "DependsOn": "PrivateNetworkAcl",
+      "Properties": {
+        "NetworkAclId": {
+          "Ref": "PrivateNetworkAcl"
+        },
+        "RuleNumber": {
+          "Ref": "AllowAllOutboundPrivateRuleNumber"
+        },
+        "Protocol": "-1",
+        "RuleAction": "allow",
+        "Egress": "true",
+        "CidrBlock": "0.0.0.0/0",
+        "PortRange": {
+          "From": "0",
+          "To": "65535"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "3f042378-1508-4a6e-85dd-f3a28eb54583"
+        }
+      }
+    },
+    "PrivateSubnetNetworkAclAssociation1": {
+      "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+      "DependsOn": [
+        "PrivateSubnet1",
+        "PrivateNetworkAcl"
+      ],
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PrivateSubnet1"
+        },
+        "NetworkAclId": {
+          "Ref": "PrivateNetworkAcl"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "13c4be65-13c6-461f-8e08-874a696360a4"
+        }
+      }
+    },
+    "PrivateSubnetNetworkAclAssociation2": {
+      "Type": "AWS::EC2::SubnetNetworkAclAssociation",
+      "DependsOn": [
+        "PrivateSubnet2",
+        "PrivateNetworkAcl"
+      ],
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PrivateSubnet2"
+        },
+        "NetworkAclId": {
+          "Ref": "PrivateNetworkAcl"
+        }
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "474e6e0d-a691-4b7d-961b-9ee8782e3aac"
+        }
+      }
+    },
+    "InternalAccessSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "DependsOn": "VPC",
+      "Properties": {
+        "GroupDescription": "Instance to Instance Access in VPC",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-instance-to-instance"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Owner",
+            "Value": {
+              "Ref": "Owner"
+            }
+          },
+          {
+            "Key": "Project",
+            "Value": {
+              "Ref": "Project"
+            }
+          },
+          {
+            "Key": "DeleteAfter",
+            "Value": {
+              "Ref": "DeleteAfter"
+            }
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "a70586c5-d8c2-4891-a20d-4f072ffe145d"
+        }
+      }
+    },
+    "InternalAccessSecurityGroupIngress": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "DependsOn": "InternalAccessSecurityGroup",
+      "Properties": {
+        "GroupId": {
+          "Ref": "InternalAccessSecurityGroup"
+        },
+        "IpProtocol": "-1",
+        "SourceSecurityGroupId": {
+          "Ref": "InternalAccessSecurityGroup"
+        }
+      }
+    },
+    "RemoteAccessSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Instance Access over VPN/Direct Connect",
+        "VpcId": {
+          "Ref": "VPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": {
+              "Fn::Join": [
+                "",
+                [
+                  {
+                    "Ref": "AWS::StackName"
+                  },
+                  "-remote-to-instance"
+                ]
+              ]
+            }
+          },
+          {
+            "Key": "Owner",
+            "Value": {
+              "Ref": "Owner"
+            }
+          },
+          {
+            "Key": "Project",
+            "Value": {
+              "Ref": "Project"
+            }
+          },
+          {
+            "Key": "DeleteAfter",
+            "Value": {
+              "Ref": "DeleteAfter"
+            }
+          }
+        ],
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "-1",
+            "CidrIp": {
+              "Ref": "RemoteAccessNetwork"
+            }
+          }
+        ],
+        "SecurityGroupEgress": [
+          {
+            "IpProtocol": "-1",
+            "CidrIp": "0.0.0.0/0"
+          }
+        ]
+      },
+      "Metadata": {
+        "AWS::CloudFormation::Designer": {
+          "id": "14393ac1-0e8f-48b0-9097-003f72c1e61e"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "Owner": {
+      "Description": "Team or Individual that Owns this Formation.",
+      "Value": {
+        "Ref": "Owner"
+      }
+    },
+    "Project": {
+      "Description": "The project name",
+      "Value": {
+        "Ref": "Project"
+      }
+    },
+    "VPC": {
+      "Description": "Created VPC",
+      "Value": {
+        "Ref": "VPC"
+      }
+    },
+    "VPCCIDR": {
+      "Description": "VPC Subnet CIDR Block",
+      "Value": {
+        "Ref": "VPCSubnetCidrBlock"
+      }
+    },
+    "VPCe": {
+      "Description": "Created VPC Endpoint",
+      "Value": {
+        "Ref": "S3VpcEndpoint"
+      }
+    },
+    "PublicRouteTable": {
+      "Description": "Public Route Table Created for VPC",
+      "Value": {
+        "Ref": "PublicRouteTable"
+      }
+    },
+    "PrivateRouteTable": {
+      "Description": "Private Route Table Created for VPC",
+      "Value": {
+        "Ref": "PrivateRouteTable"
+      }
+    },
+    "PublicNetworkAcl": {
+      "Description": "Public Network ACL Created for VPC",
+      "Value": {
+        "Ref": "PublicNetworkAcl"
+      }
+    },
+    "PrivateNetworkAcl": {
+      "Description": "Private Netowrk ACL Created for VPC",
+      "Value": {
+        "Ref": "PrivateNetworkAcl"
+      }
+    },
+    "PublicSubnet1": {
+      "Description": "Public Subnet 1 Created for VPC",
+      "Value": {
+        "Ref": "PublicSubnet1"
+      }
+    },
+    "PublicSubnet2": {
+      "Description": "Public Subnet 2 Created for VPC",
+      "Value": {
+        "Ref": "PublicSubnet2"
+      }
+    },
+    "PrivateSubnet1": {
+      "Description": "Private Subnet 1 Created for VPC",
+      "Value": {
+        "Ref": "PrivateSubnet1"
+      }
+    },
+    "PrivateSubnet2": {
+      "Description": "Private Subnet 1 Created for VPC",
+      "Value": {
+        "Ref": "PrivateSubnet2"
+      }
+    },
+    "AvailabilityZone1": {
+      "Description": "Private Subnet IDs Created for VPC",
+      "Value": {
+        "Fn::GetAtt": [
+          "PublicSubnet1",
+          "AvailabilityZone"
+        ]
+      }
+    },
+    "AvailabilityZone2": {
+      "Description": "Private Subnet IDs Created for VPC",
+      "Value": {
+        "Fn::GetAtt": [
+          "PublicSubnet2",
+          "AvailabilityZone"
+        ]
+      }
+    },
+    "PublicSubnetCidr1": {
+      "Description": "Public Subnet IDs Created for VPC",
+      "Value": {
+        "Ref": "PublicSubnetCidrBlock1"
+      }
+    },
+    "PublicSubnetCidr2": {
+      "Description": "Public Subnet IDs Created for VPC",
+      "Value": {
+        "Ref": "PublicSubnetCidrBlock2"
+      }
+    },
+    "PrivateSubnetCidr1": {
+      "Description": "Private Subnet IDs Created for VPC",
+      "Value": {
+        "Ref": "PrivateSubnetCidrBlock1"
+      }
+    },
+    "PrivateSubnetCidr2": {
+      "Description": "Private Subnet IDs Created for VPC",
+      "Value": {
+        "Ref": "PrivateSubnetCidrBlock2"
+      }
+    },
+    "InternetGateway": {
+      "Description": "Internet Gateway Created for VPC",
+      "Value": {
+        "Ref": "InternetGateway"
+      }
+    },
+    "InternalAccessSecurityGroup": {
+      "Description": "Instance to Instance Access within VPC",
+      "Value": {
+        "Ref": "InternalAccessSecurityGroup"
+      }
+    },
+    "RemoteAccessSecurityGroup": {
+      "Description": "Remote Network or IP that can Access the instances of VPN or Direct Connect.",
+      "Value": {
+        "Ref": "RemoteAccessSecurityGroup"
+      }
+    },
+    "PublicNetworkACLRuleNumbers": {
+      "Description": "Public Network ACL Rules Numbers Created.",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "Inbound (",
+            {
+              "Ref": "AllowHttpToPublicRuleNumber"
+            },
+            ", ",
+            {
+              "Ref": "AllowHttpsToPublicRuleNumber"
+            },
+            ", ",
+            {
+              "Ref": "AllowReturnTrafficToPublicRuleNumber"
+            },
+            ", ",
+            {
+              "Ref": "AllowVpcSubnetsRuleNumber"
+            },
+            ") ",
+            "Outbound (",
+            {
+              "Ref": "AllowAllOutboundPublicRuleNumber"
+            },
+            ")"
+          ]
+        ]
+      }
+    },
+    "PrivateNetworkACLRuleNumbers": {
+      "Description": "Private Network ACL Rules Numbers Created.",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "Inbound (",
+            {
+              "Ref": "AllowAllInboundPrivateRuleNumber"
+            },
+            ") ",
+            "Outbound (",
+            {
+              "Ref": "AllowAllOutboundPrivateRuleNumber"
+            },
+            ")"
+          ]
+        ]
+      }
+    },
+    "DeleteAfter": {
+      "Description": "It is ok to delete this Formation after this date",
+      "Value": {
+        "Ref": "DeleteAfter"
+      }
+    }
+  },
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Ownership"
+          },
+          "Parameters": [
+            "Owner",
+            "Project",
+            "DeleteAfter"
+          ]
+        },
+        {
+          "Label": {
+            "default": "Remote Configurations"
+          },
+          "Parameters": [
+            "RemoteAccessNetwork"
+          ]
+        },
+        {
+          "Label": {
+            "default": "AWS Network Configurations"
+          },
+          "Parameters": [
+            "VPCSubnetCidrBlock",
+            "PublicSubnetCidrBlock1",
+            "PublicSubnetCidrBlock2",
+            "PrivateSubnetCidrBlock1",
+            "PrivateSubnetCidrBlock2",
+            "AvailabilityZone1",
+            "AvailabilityZone2"
+          ]
+        },
+        {
+          "Label": {
+            "default": "AWS Network ACL Rule Numbers"
+          },
+          "Parameters": [
+            "AllowHttpToPublicRuleNumber",
+            "AllowHttpsToPublicRuleNumber",
+            "AllowReturnTrafficToPublicRuleNumber",
+            "AllowVpcSubnetsRuleNumber",
+            "AllowAllOutboundPublicRuleNumber",
+            "AllowAllInboundPrivateRuleNumber",
+            "AllowAllOutboundPrivateRuleNumber"
+          ]
+        }
+      ],
+      "ParameterLabels": {
+        "Owner": {
+          "default": "Team or Individual Owner"
+        },
+        "DeleteAfter": {
+          "default": "Delete After Date"
+        },
+        "VPCSubnetCidrBlock": {
+          "default": "VPC Subnet"
+        },
+        "PublicSubnetCidrBlock1": {
+          "default": "Public Subnet 1"
+        },
+        "PublicSubnetCidrBlock2": {
+          "default": "Public Subnet 2"
+        },
+        "PrivateSubnetCidrBlock1": {
+          "default": "Private Subnet 1"
+        },
+        "PrivateSubnetCidrBlock2": {
+          "default": "Private Subnet 2"
+        },
+        "AvailabilityZone1": {
+          "default": "Availability Zone 1"
+        },
+        "AvailabilityZone2": {
+          "default": "Availability Zone 2"
+        },
+        "AllowHttpToPublicRuleNumber": {
+          "default": "HTTP to Public"
+        },
+        "AllowHttpsToPublicRuleNumber": {
+          "default": "HTTPS to Public"
+        },
+        "AllowReturnTrafficToPublicRuleNumber": {
+          "default": "Return Traffic to Public"
+        },
+        "AllowVpcSubnetsRuleNumber": {
+          "default": "VPC Subnets to Public"
+        },
+        "AllowAllOutboundPublicRuleNumber": {
+          "default": "Public Outbound"
+        },
+        "AllowAllInboundPrivateRuleNumber": {
+          "default": "Private Inbound"
+        },
+        "AllowAllOutboundPrivateRuleNumber": {
+          "default": "Private Outbound"
+        }
+      }
+    },
+    "AWS::CloudFormation::Designer": {
+      "a537a068-7164-445e-95c8-abc077ea3398": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 1170,
+          "y": 90
+        },
+        "z": 1,
+        "embeds": []
+      },
+      "e7bff9ae-9b63-4b3f-907f-1412b6308138": {
+        "size": {
+          "width": 1050,
+          "height": 1050
+        },
+        "position": {
+          "x": 60,
+          "y": 90
+        },
+        "z": 1,
+        "embeds": [
+          "14393ac1-0e8f-48b0-9097-003f72c1e61e",
+          "a70586c5-d8c2-4891-a20d-4f072ffe145d",
+          "7a9b3c79-ee9e-412e-8b42-8009c6f766c4",
+          "508eadf6-6d7a-4309-a563-7ec668e143d4",
+          "5f3352fe-ba15-4625-8c6e-665a3f61d57c",
+          "5750047d-7d14-4729-a345-8be315647f32",
+          "175ba65e-4920-47ed-99e0-d64d8f6ca286",
+          "0e9306ab-f0be-4ced-ae2e-b5132ad2381a",
+          "4f30e4c4-2d4e-451c-b113-ee4b25fc86c0",
+          "1d299f55-f2ae-4d79-9519-c6aae785710f",
+          "4d6e8b61-df66-43e9-93f9-3b0512dffa4c"
+        ]
+      },
+      "14393ac1-0e8f-48b0-9097-003f72c1e61e": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 570,
+          "y": 360
+        },
+        "z": 2,
+        "parent": "e7bff9ae-9b63-4b3f-907f-1412b6308138",
+        "embeds": []
+      },
+      "a70586c5-d8c2-4891-a20d-4f072ffe145d": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 510,
+          "y": 840
+        },
+        "z": 2,
+        "parent": "e7bff9ae-9b63-4b3f-907f-1412b6308138",
+        "embeds": [],
+        "dependson": [
+          "e7bff9ae-9b63-4b3f-907f-1412b6308138"
+        ]
+      },
+      "7a9b3c79-ee9e-412e-8b42-8009c6f766c4": {
+        "size": {
+          "width": 330,
+          "height": 240
+        },
+        "position": {
+          "x": 90,
+          "y": 540
+        },
+        "z": 2,
+        "parent": "e7bff9ae-9b63-4b3f-907f-1412b6308138",
+        "embeds": [
+          "3f042378-1508-4a6e-85dd-f3a28eb54583",
+          "6e711be2-7f28-4e59-8df9-dcc6da5d1bf0"
+        ],
+        "dependson": [
+          "e7bff9ae-9b63-4b3f-907f-1412b6308138"
+        ]
+      },
+      "3f042378-1508-4a6e-85dd-f3a28eb54583": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 120,
+          "y": 600
+        },
+        "z": 3,
+        "parent": "7a9b3c79-ee9e-412e-8b42-8009c6f766c4",
+        "embeds": [],
+        "dependson": [
+          "7a9b3c79-ee9e-412e-8b42-8009c6f766c4"
+        ]
+      },
+      "6e711be2-7f28-4e59-8df9-dcc6da5d1bf0": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 240,
+          "y": 600
+        },
+        "z": 3,
+        "parent": "7a9b3c79-ee9e-412e-8b42-8009c6f766c4",
+        "embeds": [],
+        "dependson": [
+          "7a9b3c79-ee9e-412e-8b42-8009c6f766c4"
+        ]
+      },
+      "508eadf6-6d7a-4309-a563-7ec668e143d4": {
+        "size": {
+          "width": 420,
+          "height": 330
+        },
+        "position": {
+          "x": 90,
+          "y": 150
+        },
+        "z": 2,
+        "parent": "e7bff9ae-9b63-4b3f-907f-1412b6308138",
+        "embeds": [
+          "d110339e-be7c-4596-a1f3-c757b5ebb420",
+          "325810ac-e549-4a11-b48c-85ec7f34b614",
+          "d3976130-0f47-49d7-9d49-77d831336e7e",
+          "1a30d109-69b1-4ad2-9d9a-b1be12c825e9",
+          "51d0acdf-c4df-4d40-a3f0-83b370fe5a81"
+        ],
+        "dependson": [
+          "e7bff9ae-9b63-4b3f-907f-1412b6308138"
+        ]
+      },
+      "d110339e-be7c-4596-a1f3-c757b5ebb420": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 120,
+          "y": 210
+        },
+        "z": 3,
+        "parent": "508eadf6-6d7a-4309-a563-7ec668e143d4",
+        "embeds": [],
+        "dependson": [
+          "508eadf6-6d7a-4309-a563-7ec668e143d4"
+        ]
+      },
+      "325810ac-e549-4a11-b48c-85ec7f34b614": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 240,
+          "y": 210
+        },
+        "z": 3,
+        "parent": "508eadf6-6d7a-4309-a563-7ec668e143d4",
+        "embeds": [],
+        "dependson": [
+          "508eadf6-6d7a-4309-a563-7ec668e143d4"
+        ]
+      },
+      "d3976130-0f47-49d7-9d49-77d831336e7e": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 120,
+          "y": 330
+        },
+        "z": 3,
+        "parent": "508eadf6-6d7a-4309-a563-7ec668e143d4",
+        "embeds": [],
+        "dependson": [
+          "508eadf6-6d7a-4309-a563-7ec668e143d4"
+        ]
+      },
+      "1a30d109-69b1-4ad2-9d9a-b1be12c825e9": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 240,
+          "y": 330
+        },
+        "z": 3,
+        "parent": "508eadf6-6d7a-4309-a563-7ec668e143d4",
+        "embeds": [],
+        "dependson": [
+          "508eadf6-6d7a-4309-a563-7ec668e143d4"
+        ]
+      },
+      "51d0acdf-c4df-4d40-a3f0-83b370fe5a81": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 360,
+          "y": 210
+        },
+        "z": 3,
+        "parent": "508eadf6-6d7a-4309-a563-7ec668e143d4",
+        "embeds": [],
+        "dependson": [
+          "508eadf6-6d7a-4309-a563-7ec668e143d4"
+        ]
+      },
+      "5f3352fe-ba15-4625-8c6e-665a3f61d57c": {
+        "size": {
+          "width": 150,
+          "height": 150
+        },
+        "position": {
+          "x": 300,
+          "y": 840
+        },
+        "z": 2,
+        "parent": "e7bff9ae-9b63-4b3f-907f-1412b6308138",
+        "embeds": [],
+        "dependson": [
+          "e7bff9ae-9b63-4b3f-907f-1412b6308138"
+        ]
+      },
+      "bc26ab19-0956-487d-a891-8da1c48c7170": {
+        "size": {
+          "width": 150,
+          "height": 150
+        },
+        "position": {
+          "x": 90,
+          "y": 840
+        },
+        "z": 2,
+        "parent": "e7bff9ae-9b63-4b3f-907f-1412b6308138",
+        "embeds": [],
+        "dependson": [
+          "e7bff9ae-9b63-4b3f-907f-1412b6308138"
+        ]
+      },
+      "8fefb1c8-e03c-4410-9f9d-21e01f742120": {
+        "source": {
+          "id": "7a9b3c79-ee9e-412e-8b42-8009c6f766c4"
+        },
+        "target": {
+          "id": "bc26ab19-0956-487d-a891-8da1c48c7170"
+        },
+        "z": 2
+      },
+      "93a5c7d3-8301-4365-84db-1b562b943469": {
+        "source": {
+          "id": "5f3352fe-ba15-4625-8c6e-665a3f61d57c"
+        },
+        "target": {
+          "id": "bc26ab19-0956-487d-a891-8da1c48c7170"
+        },
+        "z": 2
+      },
+      "5750047d-7d14-4729-a345-8be315647f32": {
+        "size": {
+          "width": 150,
+          "height": 150
+        },
+        "position": {
+          "x": 780,
+          "y": 780
+        },
+        "z": 2,
+        "parent": "e7bff9ae-9b63-4b3f-907f-1412b6308138",
+        "embeds": [],
+        "dependson": [
+          "e7bff9ae-9b63-4b3f-907f-1412b6308138"
+        ]
+      },
+      "474e6e0d-a691-4b7d-961b-9ee8782e3aac": {
+        "source": {
+          "id": "7a9b3c79-ee9e-412e-8b42-8009c6f766c4"
+        },
+        "target": {
+          "id": "5750047d-7d14-4729-a345-8be315647f32"
+        },
+        "z": 2
+      },
+      "0081e097-2e0d-4c4c-a1e4-bf42aaa8d9e1": {
+        "source": {
+          "id": "5f3352fe-ba15-4625-8c6e-665a3f61d57c"
+        },
+        "target": {
+          "id": "5750047d-7d14-4729-a345-8be315647f32"
+        },
+        "z": 2
+      },
+      "175ba65e-4920-47ed-99e0-d64d8f6ca286": {
+        "size": {
+          "width": 150,
+          "height": 150
+        },
+        "position": {
+          "x": 780,
+          "y": 570
+        },
+        "z": 2,
+        "parent": "e7bff9ae-9b63-4b3f-907f-1412b6308138",
+        "embeds": [],
+        "dependson": [
+          "e7bff9ae-9b63-4b3f-907f-1412b6308138"
+        ]
+      },
+      "13c4be65-13c6-461f-8e08-874a696360a4": {
+        "source": {
+          "id": "7a9b3c79-ee9e-412e-8b42-8009c6f766c4"
+        },
+        "target": {
+          "id": "175ba65e-4920-47ed-99e0-d64d8f6ca286"
+        },
+        "z": 2
+      },
+      "5ed1c3d4-c2cd-4201-95c1-84f0f3493212": {
+        "source": {
+          "id": "5f3352fe-ba15-4625-8c6e-665a3f61d57c"
+        },
+        "target": {
+          "id": "175ba65e-4920-47ed-99e0-d64d8f6ca286"
+        },
+        "z": 2
+      },
+      "0e9306ab-f0be-4ced-ae2e-b5132ad2381a": {
+        "size": {
+          "width": 240,
+          "height": 240
+        },
+        "position": {
+          "x": 480,
+          "y": 540
+        },
+        "z": 2,
+        "parent": "e7bff9ae-9b63-4b3f-907f-1412b6308138",
+        "embeds": [
+          "d3b44187-94f5-4ae8-adf4-c0ac9368d8d3"
+        ],
+        "dependson": [
+          "e7bff9ae-9b63-4b3f-907f-1412b6308138"
+        ]
+      },
+      "4f30e4c4-2d4e-451c-b113-ee4b25fc86c0": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 630,
+          "y": 840
+        },
+        "z": 2,
+        "parent": "e7bff9ae-9b63-4b3f-907f-1412b6308138",
+        "embeds": [],
+        "isassociatedwith": [
+          "5f3352fe-ba15-4625-8c6e-665a3f61d57c",
+          "0e9306ab-f0be-4ced-ae2e-b5132ad2381a"
+        ],
+        "dependson": [
+          "e7bff9ae-9b63-4b3f-907f-1412b6308138",
+          "5f3352fe-ba15-4625-8c6e-665a3f61d57c",
+          "0e9306ab-f0be-4ced-ae2e-b5132ad2381a"
+        ]
+      },
+      "d3b44187-94f5-4ae8-adf4-c0ac9368d8d3": {
+        "size": {
+          "width": 60,
+          "height": 60
+        },
+        "position": {
+          "x": 510,
+          "y": 600
+        },
+        "z": 3,
+        "parent": "0e9306ab-f0be-4ced-ae2e-b5132ad2381a",
+        "embeds": [],
+        "references": [
+          "a537a068-7164-445e-95c8-abc077ea3398"
+        ],
+        "dependson": [
+          "0e9306ab-f0be-4ced-ae2e-b5132ad2381a",
+          "a537a068-7164-445e-95c8-abc077ea3398"
+        ]
+      },
+      "81412561-5193-4bc3-b2d5-d37bc798594d": {
+        "source": {
+          "id": "a537a068-7164-445e-95c8-abc077ea3398"
+        },
+        "target": {
+          "id": "e7bff9ae-9b63-4b3f-907f-1412b6308138"
+        },
+        "z": 1
+      },
+      "98708721-5589-4432-91d9-2d1ec72a1c82": {
+        "size": {
+          "width": 150,
+          "height": 150
+        },
+        "position": {
+          "x": 780,
+          "y": 360
+        },
+        "z": 2,
+        "parent": "e7bff9ae-9b63-4b3f-907f-1412b6308138",
+        "embeds": [],
+        "dependson": [
+          "e7bff9ae-9b63-4b3f-907f-1412b6308138"
+        ]
+      },
+      "642958d0-6afb-471d-9e56-c9057e7532c3": {
+        "source": {
+          "id": "508eadf6-6d7a-4309-a563-7ec668e143d4"
+        },
+        "target": {
+          "id": "98708721-5589-4432-91d9-2d1ec72a1c82"
+        },
+        "z": 2
+      },
+      "a8bb76af-4804-4901-b153-a950ae94cd47": {
+        "source": {
+          "id": "0e9306ab-f0be-4ced-ae2e-b5132ad2381a"
+        },
+        "target": {
+          "id": "98708721-5589-4432-91d9-2d1ec72a1c82"
+        },
+        "z": 2
+      },
+      "1d299f55-f2ae-4d79-9519-c6aae785710f": {
+        "size": {
+          "width": 150,
+          "height": 150
+        },
+        "position": {
+          "x": 780,
+          "y": 150
+        },
+        "z": 2,
+        "parent": "e7bff9ae-9b63-4b3f-907f-1412b6308138",
+        "embeds": [],
+        "dependson": [
+          "e7bff9ae-9b63-4b3f-907f-1412b6308138"
+        ]
+      },
+      "0ca35575-0206-446e-8a4f-e6b555384652": {
+        "source": {
+          "id": "508eadf6-6d7a-4309-a563-7ec668e143d4"
+        },
+        "target": {
+          "id": "1d299f55-f2ae-4d79-9519-c6aae785710f"
+        },
+        "z": 2
+      },
+      "829c5a32-ab79-4d39-9ee6-ec3691a375e0": {
+        "source": {
+          "id": "0e9306ab-f0be-4ced-ae2e-b5132ad2381a"
+        },
+        "target": {
+          "id": "1d299f55-f2ae-4d79-9519-c6aae785710f"
+        },
+        "z": 2
+      },
+      "4d6e8b61-df66-43e9-93f9-3b0512dffa4c": {
+        "size": {
+          "width": 150,
+          "height": 150
+        },
+        "position": {
+          "x": 570,
+          "y": 150
+        },
+        "z": 2,
+        "parent": "e7bff9ae-9b63-4b3f-907f-1412b6308138",
+        "embeds": [],
+        "dependson": [
+          "e7bff9ae-9b63-4b3f-907f-1412b6308138"
+        ]
+      },
+      "31a7b339-051d-408f-be29-3183abd83ab5": {
+        "source": {
+          "id": "508eadf6-6d7a-4309-a563-7ec668e143d4"
+        },
+        "target": {
+          "id": "4d6e8b61-df66-43e9-93f9-3b0512dffa4c"
+        },
+        "z": 2
+      },
+      "69b30867-d485-4d52-b24b-a2f0971df9b4": {
+        "source": {
+          "id": "0e9306ab-f0be-4ced-ae2e-b5132ad2381a"
+        },
+        "target": {
+          "id": "4d6e8b61-df66-43e9-93f9-3b0512dffa4c"
+        },
+        "z": 2
+      }
+    }
+  }
+}
