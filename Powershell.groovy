@@ -1,7 +1,0 @@
-job('Powershell') {
-  steps {
-    powerShell('...')
-  }
-  
-  }
-
