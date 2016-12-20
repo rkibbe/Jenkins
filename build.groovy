@@ -1,5 +1,5 @@
 
-job('DSL-codedeploy') {
+job('DSL-test') {
     scm {
         git('git://github.com:rkibbe/jenkins.git')
 		
