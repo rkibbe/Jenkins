@@ -21,7 +21,7 @@ job('DSL-codedeploy') {
         project / publishers / 'com.amazonaws.codedeploy.AWSCodeDeployPublisher' { 
              s3bucket 'dev-build-artifacts1' 
 			 applicationName 'Cerrs.EagleEye'
-			 deploymentGroup 'Cerrs.EagleEye'
+			 deploymentGroupName 'Cerrs.EagleEye'
 			 deploymentMethod 'deploy'
 			 region 'us-east-1'
 			 includes '**'
