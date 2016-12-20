@@ -27,9 +27,7 @@ job('DSL-codedeploy') {
 			 includes '**'
 			 excludes '*.csproj'
 			 subdirectory 'EagleEye'
-			 awsAccessKey 'AKIAJSJRXSVMYSRKY36Q'
-			 awsSecretKey '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'
-			 credentials 'awsAccessKey'
+			 
 			 
          } 
      } 
